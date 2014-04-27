@@ -1,0 +1,13 @@
+*~
+*.pyc
+*.so
+
+*.egg
+*.egg-info
+
+/build
+/dist
+/MANIFEST
+__pycache__
+
+/.venv*
