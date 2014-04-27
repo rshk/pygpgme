@@ -1,0 +1,13 @@
+include Makefile
+include NEWS
+include MANIFEST.in
+include test_all.py
+
+recursive-include examples *.py
+recursive-include gpgme *.py
+recursive-include tests *.py
+include tests/keys/*.pub
+include tests/keys/*.sec
+
+include src/*.c
+include src/*.h

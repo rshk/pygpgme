@@ -1,0 +1,23 @@
+pygpgme-0.3: 2012-03-08
+
+ * Add support for Python 3 (tested with Python 3.2).  Data being
+   encrypted, decrypted, signed or verified is treated as bytes, while
+   textual data (including textual representations of binary data like
+   key IDs) uses the string/unicode type.
+ * The test suite has been moved to the toplevel and is no longer
+   installed with the extension.
+ * The examples directory is now included in tarball releases.
+
+pygpgme-0.2: 2011-08-17
+
+ * Update the code base to work with newer versions of GPGME
+ * Update extension code to make it easier to port to Python 3 (this
+   version still doesn't support Python 3). In general, this involves
+   making sure we return Unicode strings for textual data and byte
+   strings for binary data.
+ * Add support for the genkey API.
+ * Add support for symmetric encryption in encrypt().
+
+pygpgme-0.1: 2006-03-27
+
+ * Initial Release.
