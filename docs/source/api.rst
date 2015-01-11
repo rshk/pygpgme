@@ -10,6 +10,8 @@ Context
 
 .. py:class:: Context
 
+    Context are the most important object in gpgme.
+
     .. py:attribute:: armor
 
         Property indicating whether output should be ASCII-armored or
@@ -32,13 +34,32 @@ Context
         :param plaintext: A file-like object opened for writing, where
             the decrypted data will be written.
 
-    .. py:method:: decrypt_verify
+    .. py:method:: decrypt_verify(ciphertext, plaintext)
 
-    .. py:method:: delete
+    .. py:method:: delete(key, allow_secret=False)
 
     .. py:method:: edit
 
-    .. py:method:: encrypt
+    .. py:method:: encrypt(recipients, flags, plaintext, ciphertext)
+
+       Encrypts plaintext so it can only be read by the given
+       recipients.
+
+       :param recipients: A list of Key objects. Only people in
+         posession of the corresponding private key (for public key
+         encryption) or passphrase (for symmetric encryption) will be
+         able to decrypt the result.
+
+       :param flags: ``ENCRYPT_*`` constants added together. See GPGME
+         docs for details.
+
+       :param plaintext: A file-like object opened for reading,
+         containing the data to be encrypted.
+
+       :param ciphertext: A file-like object opened for writing, where
+         the encrypted data will be written. If the ``Context``'s
+         :py:attr:`~Context.armor` property is ``False``, this file should
+         be opened in binary mode.
 
     .. py:method:: encrypt_sign
 
@@ -46,7 +67,18 @@ Context
 
     .. py:method:: genkey
 
-    .. py:method:: get_key
+    .. py:method:: get_key(fingerprint, secret=False)
+
+        Finds a key with the given fingerprint (a string of hex digits) in
+        the user's keyring.
+
+        :param fingerprint: fingerprint of the key to look for
+
+        :param secret: if ``True``, only private keys will be returned.
+
+        If no key can be found, raises :py:exc:`GpgmeError`
+
+        :return: a :py:class:`Key` instance.
 
     .. py:method:: import_
 
@@ -221,21 +253,39 @@ Protocol selection
 ------------------
 
 
-- ``PROTOCOL_OpenPGP`` -- This specifies the OpenPGP protocol.
-- ``PROTOCOL_CMS`` -- This specifies the Cryptographic Message
-  Syntax.
-- [#missing-const]_ ``PROTOCOL_ASSUAN`` -- Under development. Please ask on
-  gnupg-devel@gnupg.org for help.
-- [#missing-const]_ ``PROTOCOL_G13`` -- Under development. Please ask on
-  gnupg-devel@gnupg.org for help.
-- [#missing-const]_ ``PROTOCOL_UISERVER`` -- Under development. Please ask on
-  gnupg-devel@gnupg.org for help.
-- [#missing-const]_ ``PROTOCOL_SPAWN`` -- Special protocol for use with
-  gpgme_op_spawn.
-- [#missing-const]_ ``PROTOCOL_UNKNOWN`` -- Reserved for future extension. You may
-  use this to indicate that the used protocol is not known to the
-  application. Currently, GPGME does not accept this value in any
-  operation, though, except for gpgme_get_protocol_name.
+.. py:data:: PROTOCOL_OpenPGP
+
+    This specifies the OpenPGP protocol.
+
+.. py:data:: PROTOCOL_CMS
+
+    This specifies the Cryptographic Message Syntax.
+
+.. py:data:: PROTOCOL_ASSUAN
+
+     [#missing-const]_ Under development. Please ask on
+     gnupg-devel@gnupg.org for help.
+
+.. py:data:: PROTOCOL_G13
+
+     [#missing-const]_ Under development. Please ask on
+     gnupg-devel@gnupg.org for help.
+
+.. py:data:: PROTOCOL_UISERVER
+
+     [#missing-const]_ Under development. Please ask on
+     gnupg-devel@gnupg.org for help.
+
+.. py:data:: PROTOCOL_SPAWN
+
+     [#missing-const]_ Special protocol for use with gpgme_op_spawn.
+
+.. py:data:: PROTOCOL_UNKNOWN
+
+     [#missing-const]_ Reserved for future extension. You may use this
+     to indicate that the used protocol is not known to the
+     application. Currently, GPGME does not accept this value in any
+     operation, though, except for gpgme_get_protocol_name.
 
 
 Key listing mode
@@ -266,5 +316,43 @@ Key listing mode
   in general not useful. Currently only implemented for the S/MIME
   backend and ignored for other backends.
 
+
+Encryption flags
+----------------
+
+.. py:data:: ENCRYPT_ALWAYS_TRUST
+
+  Specifies that all the recipients in recp should be trusted, even if
+  the keys do not have a high enough validity in the keyring. This
+  flag should be used with care; in general it is not a good idea to
+  use any untrusted keys.
+
+.. py:data:: ENCRYPT_NO_ENCRYPT_TO
+
+  [#missing-const]_ specifies that no
+  default or hidden default recipients as configured in the crypto
+  backend should be included. This can be useful for managing
+  different user profiles.
+
+.. py:data:: ENCRYPT_NO_COMPRESS
+
+  [#missing-const]_ specifies that the
+  plaintext shall not be compressed before it is encrypted. This is in
+  some cases useful if the length of the encrypted message may reveal
+  information about the plaintext.
+
+.. py:data:: ENCRYPT_PREPARE
+
+  [#missing-const]_
+
+.. py:data:: ENCRYPT_EXPECT_SIGN
+
+  [#missing-const]_ The ``ENCRYPT_PREPARE`` symbol is used with the UI
+  Server protocol to prepare an encryption (i.e. sending the
+  ``PREP_ENCRYPT`` command). With the ``ENCRYPT_EXPECT_SIGN`` symbol
+  the UI Server is advised to also expect a sign command.
+
+
+
 .. [#missing-const] This constant is defined by the gpgme library, but
-                    it is currently missing in pygpgme.
+                    is currently missing in pygpgme.
