@@ -57,11 +57,15 @@ Context
          containing the data to be encrypted.
 
        :param ciphertext: A file-like object opened for writing, where
-         the encrypted data will be written. If the ``Context``'s
-         :py:attr:`~Context.armor` property is ``False``, this file should
-         be opened in binary mode.
+         the encrypted data will be written. If :py:attr:`Context.armor` is
+         false then this file should be opened in binary mode.
 
-    .. py:method:: encrypt_sign
+    .. py:method:: encrypt_sign(recipients, flags, plaintext, ciphertext)
+
+        Encrypt and sign plaintext.
+
+        Works like :py:meth:`Context.encrypt`, but the ciphertext is also
+        signed using all keys listed in :py:attr:`Context.signers`.
 
     .. py:method:: export
 
@@ -122,9 +126,29 @@ Context
 
     .. py:method:: set_locale
 
-    .. py:method:: sign
+    .. py:method:: sign(plaintext, signed, mode=gpgme.SIG_MODE_NORMAL)
 
-    .. py:method:: signers
+        Sign plaintext to certify and timestamp it.
+
+        The plaintext is signed using all keys listed in
+        :py:attr:`Context.signers`.
+
+        :param plaintext: A file-like object opened for reading, containing
+                          the plaintext to be signed.
+
+        :param signed: A file-like object opened for writing, where the
+                       signature data will be written. The signature data
+                       may contain the plaintext or not, see the ``mode``
+                       parameter. If :py:attr:`Context.armor` is false and
+                       ``mode`` is not :py:data:`SIG_MODE_CLEAR` then the
+                       file should be opened in binary mode.
+
+        :param mode: One of the ``SIG_MODE_*`` constants.
+
+    .. py:attribute:: signers
+
+        List of :py:class:`Key` instances used for signing with
+        :py:meth:`sign` and :py:meth:`encrypt_sign`.
 
     .. py:method:: textmode
 
@@ -249,7 +273,7 @@ Stuff that's mostly used internally, but it's good to know it's there.
 Constants
 =========
 
-Protocol selection
+Protocol Selection
 ------------------
 
 
@@ -288,7 +312,7 @@ Protocol selection
      operation, though, except for gpgme_get_protocol_name.
 
 
-Key listing mode
+Key Listing Mode
 ----------------
 
 - ``KEYLIST_MODE_LOCAL`` specifies that the local keyring should be
@@ -317,7 +341,7 @@ Key listing mode
   backend and ignored for other backends.
 
 
-Encryption flags
+Encryption Flags
 ----------------
 
 .. py:data:: ENCRYPT_ALWAYS_TRUST
@@ -352,6 +376,25 @@ Encryption flags
   ``PREP_ENCRYPT`` command). With the ``ENCRYPT_EXPECT_SIGN`` symbol
   the UI Server is advised to also expect a sign command.
 
+
+Signing Modes
+-------------
+
+The following constants can be used for the ``mode`` parameter of
+:py:meth:`Context.sign`.
+
+.. py:data:: SIG_MODE_NORMAL
+
+    A normal signature is made, the output includes the plaintext and the
+    signature. :py:attr:`Context.armor` is respected.
+
+.. py:data:: SIG_MODE_DETACHED
+
+    A detached signature is created. :py:attr:`Context.armor` is respected.
+
+.. py:data:: SIG_MODE_CLEAR
+
+    A cleartext signature is created. :py:attr:`Context.armor` is ignored.
 
 
 .. [#missing-const] This constant is defined by the gpgme library, but
