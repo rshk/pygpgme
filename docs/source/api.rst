@@ -36,6 +36,17 @@ Context
 
     .. py:method:: decrypt_verify(ciphertext, plaintext)
 
+        Decrypt ciphertext and verify signatures.
+
+        Like :py:meth:`Context.decrypt`, but also checks the signatures
+        of the ciphertext.
+
+        :return: A list of :py:class:`Signature` instances (one for each key
+                 that was used in the signature). Note that you need to inspect
+                 the return value to check whether the signatures are valid -- a
+                 syntactically correct but invalid signature does not raise an
+                 error!
+
     .. py:method:: delete(key, allow_secret=False)
 
     .. py:method:: edit
@@ -66,6 +77,9 @@ Context
 
         Works like :py:meth:`Context.encrypt`, but the ciphertext is also
         signed using all keys listed in :py:attr:`Context.signers`.
+
+        :return: A list of :py:class:`NewSignature` instances (one for each
+                 key in :py:attr:`Context.signers`).
 
     .. py:method:: export
 
@@ -145,6 +159,9 @@ Context
 
         :param mode: One of the ``SIG_MODE_*`` constants.
 
+        :return: A list of :py:class:`NewSignature` instances (one for each
+                 key in :py:attr:`Context.signers`).
+
     .. py:attribute:: signers
 
         List of :py:class:`Key` instances used for signing with
@@ -152,7 +169,28 @@ Context
 
     .. py:method:: textmode
 
-    .. py:method:: verify
+    .. py:method:: verify(signature, signedtext, plaintext)
+
+        Verify signature(s) and extract plaintext.
+
+        ``signature`` is a file-like object opened for reading, containing the
+        signature data.
+
+        If ``signature`` is a normal or cleartext signature (i.e. created using
+        :py:data:`SIG_MODE_NORMAL` or :py:data:`SIG_MODE_CLEAR`) then
+        ``signedtext`` must be ``None`` and ``plaintext`` a file-like object
+        opened for writing that will contain the extracted plaintext.
+
+        If ``signature`` is a detached signature (i.e. created using
+        :py:data:`SIG_MODE_DETACHED`) then ``signedtext`` should contain a
+        file-like object opened for reading containing the signed text and
+        ``plaintext`` must be ``None``.
+
+        :return: A list of :py:class:`Signature` instances (one for each key
+                 that was used in ``signature``). Note that you need to inspect
+                 the return value to check whether the signatures are valid -- a
+                 syntactically correct but invalid signature does not raise an
+                 error!
 
 
 Key
@@ -245,6 +283,69 @@ Key
         The keylist mode that was active when the key was retrieved.
 
 
+NewSignature
+============
+
+.. py:class:: NewSignature
+
+    Data for newly created signatures.
+
+    Instances of this class are usually obtained as the result value of
+    :py:meth:`Context.sign` or :py:meth:`Context.encrypt_sign`.
+
+
+Signature
+=========
+
+.. py:class:: Signature
+
+    Signature verification data.
+
+    Instances of this class are usually obtained as the return value of
+    :py:meth:`Context.verify` or :py:meth:`Context.decrypt_verify`.
+
+    .. py:attribute:: exp_timestamp
+
+        Expiration timestamp of the signature, or 0 if the signature does
+        not expire.
+
+    .. py:attribute:: fpr
+
+        Fingerprint string.
+
+    .. py:attribute:: notations
+
+        A list of notation data in the form of tuples ``(name, value)``.
+
+    .. py:attribute:: status
+
+        If an error occurred during verification (for example because the
+        signature is not valid) then this attribute contains a corresponding
+        :py:class:`GpgmeError` instance. Otherwise it is ``None``.
+
+    .. py:attribute:: summary
+
+        A bit array encoded as an integer containing general information
+        about the signature. Combine this value with one of the ``SIGSUM_*``
+        constants using bitwise AND.
+
+    .. py:attribute:: timestamp
+
+        Creation timestamp of the signature.
+
+    .. py:attribute:: validity
+
+        Validity of the signature.
+
+    .. py:attribute:: validity_reason
+
+        If a signature is not valid this may provide a reason why.
+
+    .. py:attribute:: wrong_key_usage
+
+        True if the key was not used according to its policy.
+
+
 Helper objects
 ==============
 
@@ -258,13 +359,10 @@ Stuff that's mostly used internally, but it's good to know it's there.
 
     gpgme version string
 
-
 .. py:class:: GenKeyResult
 .. py:class:: GpgmeError
 .. py:class:: ImportResult
 .. py:class:: KeySig
-.. py:class:: NewSignature
-.. py:class:: Signature
 .. py:class:: Subkey
 .. py:class:: UserId
 
@@ -395,6 +493,60 @@ The following constants can be used for the ``mode`` parameter of
 .. py:data:: SIG_MODE_CLEAR
 
     A cleartext signature is created. :py:attr:`Context.armor` is ignored.
+
+
+Signature Verification
+----------------------
+
+The following bit masks can be used to extract individual bits from
+:py:attr:`Signature.summary` using bitwise AND.
+
+.. py:data:: SIGSUM_VALID
+
+    The signature is fully valid.
+
+.. py:data:: SIGSUM_GREEN
+
+    The signature is good but one might want to display some extra information.
+    Check the other bits.
+
+.. py:data:: SIGSUM_RED
+
+    The signature is bad. It might be useful to check other bits and display more
+    information, i.e. a revoked certificate might not render a signature invalid
+    when the message was received prior to the cause for the revocation.
+
+.. py:data:: SIGSUM_KEY_REVOKED
+
+    The key or at least one certificate has been revoked.
+
+.. py:data:: SIGSUM_KEY_EXPIRED
+
+    The key or one of the certificates has expired.
+
+.. py:data:: SIGSUM_SIG_EXPIRED
+
+    The signature has expired.
+
+.. py:data:: SIGSUM_KEY_MISSING
+
+    Can’t verify due to a missing key or certificate.
+
+.. py:data:: SIGSUM_CRL_MISSING
+
+    The certificate revocation list (or an equivalent mechanism) is not available.
+
+.. py:data:: SIGSUM_CRL_TOO_OLD
+
+    The available certificate revocation list is too old.
+
+.. py:data:: SIGSUM_BAD_POLICY
+
+    A policy requirement was not met.
+
+.. py:data:: SIGSUM_SYS_ERROR
+
+    A system error occured.
 
 
 .. [#missing-const] This constant is defined by the gpgme library, but
