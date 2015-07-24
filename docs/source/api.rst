@@ -147,7 +147,24 @@ Context
         The protocol used for talking to the backend. Accepted values are one
         of the ``PROTOCOL_*`` constants.
 
-    .. py:method:: set_engine_info
+    .. py:method:: set_engine_info(protocol, executable, config_dir)
+
+        Configure a crypto backend.
+
+        Updates the configuration of the crypto backend for the given protocol.
+        If this function is used then it must be called before any crypto
+        operation is performed on the context.
+
+        :param protocol: One of the ``PROTOCOL_*`` constants specifying which
+            crypto backend is to be configured. Note that this does not change
+            which crypto backend is actually used, see
+            :py:attr:`Context.protocol` for that.
+
+        :param executable: The path to the executable implementing the
+            protocol. If ``None`` then the default will be used.
+
+        :param config_dir: The path of the configuration directory of the crypto
+            backend. If ``None`` then the default will be used.
 
     .. py:method:: set_locale
 
