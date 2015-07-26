@@ -95,7 +95,37 @@ Context
 
     .. py:method:: export
 
-    .. py:method:: genkey
+    .. py:method:: genkey(params, public=None, secret=None)
+
+        Generate a new key pair.
+
+        The functionality of this method depends on the crypto backend set
+        via :py:attr:`Context.protocol`. This documentation only covers PGP/GPG
+        (i.e. :py:data:`PROTOCOL_OpenPGP`).
+
+        The generated key pair is automatically added to the key ring. Use
+        :py:meth:`Context.set_engine_info` to configure the location of the
+        key ring files.
+
+        :param params: A string containing the parameters for key generation.
+            The general syntax is as follows::
+
+                <GnupgKeyParms format="internal">
+                    Key-Type: RSA
+                    Key-Length: 2048
+                    Name-Real: Jim Joe
+                    Passphrase: secret passphrase
+                    Expire-Date: 0
+                </GnupgKeyParms>
+
+            For a detailed listing of the available options please refer to the
+            `GPG key generation documentation`_.
+
+        :param public: Must be ``None``.
+
+        :param secret: Must be ``None``.
+
+        :return: An instance of :py:class:`gpgme.GenkeyResult`.
 
     .. py:method:: get_key(fingerprint, secret=False)
 
@@ -219,6 +249,34 @@ Context
             return value to check whether the signatures are valid -- a
             syntactically correct but invalid signature does not raise an
             error!
+
+.. _`GPG key generation documentation`: https://www.gnupg.org/documentation/manuals/gnupg/Unattended-GPG-key-generation.html
+
+
+GenkeyResult
+============
+
+.. py:class:: GenkeyResult
+
+    Key generation result.
+
+    Instances of this class are usually obtained as the return value
+    of :py:meth:`Context.genkey`.
+
+    .. py:attribute:: fpr
+
+        String containing the fingerprint of the generated key. If both a
+        primary and a subkey were generated then this is the fingerprint of
+        the primary key. For crypto backends that do not provide key
+        fingerprints this is ``None``.
+
+    .. py:attribute:: primary
+
+        True if a primary key was generated.
+
+    .. py:attribute:: sub
+
+        True if a sub key was generated.
 
 
 Key
@@ -388,7 +446,6 @@ Stuff that's mostly used internally, but it's good to know it's there.
 
     Version string of libgpgme used to build this module.
 
-.. py:class:: GenKeyResult
 .. py:class:: GpgmeError
 .. py:class:: ImportResult
 .. py:class:: KeySig
