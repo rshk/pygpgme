@@ -199,5 +199,11 @@ FIXME
 Using a Different GPG Base Directory
 ====================================
 
-FIXME
+PyGPGME honours the ``GNUPGHOME`` environment variable. This means you can change the GPG Base Directory simply by setting it using ``os.environ``::
+
+    import os
+    import gpgme
+
+    os.environ['GNUPGHOME'] = '/path/to/dir'
+    ctx = gpgme.Context()
 
