@@ -95,6 +95,7 @@ pygpgme_context_init(PyGpgmeContext *self, PyObject *args, PyObject *kwargs)
     if (pygpgme_check_error(gpgme_new(&self->ctx)))
         return -1;
 
+    gpgme_set_pinentry_mode(self->ctx, GPGME_PINENTRY_MODE_CANCEL);
     return 0;
 }
 
@@ -246,7 +247,7 @@ static PyObject *
 pygpgme_context_get_pinentry_mode(PyGpgmeContext *self)
 {
 #if GPGME_VERSION_NUMBER < 0x010400
-    return PyInt_FromLong(GPGME_PINENTRY_MODE_DEFAULT);
+    return PyInt_FromLong(GPGME_PINENTRY_MODE_LOOPBACK);
 #else  /* gpgme >= 1.4.0 */
     return PyInt_FromLong(gpgme_get_pinentry_mode(self->ctx));
 #endif /* gpgme >= 1.4.0 */
@@ -1178,6 +1179,9 @@ parse_key_patterns(PyObject *py_pattern, char ***patterns)
     }
     return result;
 }
+static const char pygpgme_context_export_doc[] =
+    "export(patterns, fd, mode)";
+
 
 static PyObject *
 pygpgme_context_export(PyGpgmeContext *self, PyObject *args)
@@ -1186,8 +1190,9 @@ pygpgme_context_export(PyGpgmeContext *self, PyObject *args)
     char **patterns = NULL;
     gpgme_data_t keydata;
     gpgme_error_t err;
+    int mode = GPGME_EXPORT_MODE_EXTERN;
 
-    if (!PyArg_ParseTuple(args, "OO", &py_pattern, &py_keydata))
+    if (!PyArg_ParseTuple(args, "OO|i", &py_pattern, &py_keydata, &mode))
         return NULL;
 
     if (parse_key_patterns(py_pattern, &patterns) < 0)
@@ -1200,7 +1205,7 @@ pygpgme_context_export(PyGpgmeContext *self, PyObject *args)
     }
 
     Py_BEGIN_ALLOW_THREADS;
-    err = gpgme_op_export_ext(self->ctx, (const char **)patterns, 0, keydata);
+    err = gpgme_op_export_ext(self->ctx, (const char **)patterns, mode, keydata);
     Py_END_ALLOW_THREADS;
 
     if (patterns)
@@ -1210,6 +1215,8 @@ pygpgme_context_export(PyGpgmeContext *self, PyObject *args)
         return NULL;
     Py_RETURN_NONE;
 }
+static const char pygpgme_context_genkey_doc[] =
+    "genkey(GnupgKeyParms, None, None)";
 
 static PyObject *
 pygpgme_context_genkey(PyGpgmeContext *self, PyObject *args)
@@ -1398,11 +1405,11 @@ pygpgme_context_keylist(PyGpgmeContext *self, PyObject *args)
 // pygpgme_context_trustlist
 
 static PyMethodDef pygpgme_context_methods[] = {
-    { "set_engine_info", (PyCFunction)pygpgme_context_set_engine_info, METH_VARARGS },
+    { "set_engine_info", (PyCFunction)pygpgme_context_set_engine_info, METH_VARARGS , "set_engine_info(protocol, executable_path, keyring_path)"},
     { "set_locale", (PyCFunction)pygpgme_context_set_locale, METH_VARARGS },
     { "get_key", (PyCFunction)pygpgme_context_get_key, METH_VARARGS,
       pygpgme_context_get_key_doc },
-    { "encrypt", (PyCFunction)pygpgme_context_encrypt, METH_VARARGS, 
+    { "encrypt", (PyCFunction)pygpgme_context_encrypt, METH_VARARGS,
       pygpgme_context_encrypt_doc },
     { "encrypt_sign", (PyCFunction)pygpgme_context_encrypt_sign, METH_VARARGS },
     { "decrypt", (PyCFunction)pygpgme_context_decrypt, METH_VARARGS,
@@ -1410,9 +1417,10 @@ static PyMethodDef pygpgme_context_methods[] = {
     { "decrypt_verify", (PyCFunction)pygpgme_context_decrypt_verify, METH_VARARGS },
     { "sign", (PyCFunction)pygpgme_context_sign, METH_VARARGS },
     { "verify", (PyCFunction)pygpgme_context_verify, METH_VARARGS },
-    { "import_", (PyCFunction)pygpgme_context_import, METH_VARARGS },
-    { "export", (PyCFunction)pygpgme_context_export, METH_VARARGS },
-    { "genkey", (PyCFunction)pygpgme_context_genkey, METH_VARARGS },
+    { "import_", (PyCFunction)pygpgme_context_import, METH_VARARGS},
+    { "export", (PyCFunction)pygpgme_context_export, METH_VARARGS,
+      pygpgme_context_export_doc},
+    { "genkey", (PyCFunction)pygpgme_context_genkey, METH_VARARGS , pygpgme_context_genkey_doc},
     { "delete", (PyCFunction)pygpgme_context_delete, METH_VARARGS },
     { "edit", (PyCFunction)pygpgme_context_edit, METH_VARARGS },
     { "card_edit", (PyCFunction)pygpgme_context_card_edit, METH_VARARGS },
