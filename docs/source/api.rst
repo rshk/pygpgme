@@ -95,6 +95,13 @@ Context
 
     .. py:method:: export
 
+        Export a a key
+
+        :param patterns: a string or list of strings
+        :param mode: one of :py:data:`EXPORT_MODE_EXTERN`, :py:data:`EXPORT_MODE_MINIMAL`, :py:data:`EXPORT_MODE_SECRET`, :py:data:`EXPORT_MODE_RAW` or :py:data:`EXPORT_MODE_PKCS12`
+        :param buffer: a file-like object such as :py:class:`io.BytesIO`
+        :returns: None - the data is written to the given buffer instead.
+
     .. py:method:: genkey(params, public=None, secret=None)
 
         Generate a new key pair.
@@ -656,6 +663,42 @@ The following bit masks can be used to extract individual bits from
 .. py:data:: SIGSUM_SYS_ERROR
 
     A system error occured.
+
+
+Key Export Modes
+----------------
+
+.. py:data:: EXPORT_MODE_EXTERN
+
+   If this bit is set, the output is send directly to the default
+   keyserver. This is currently only allowed for OpenPGP keys. It is
+   good practise to not send more than a few dozens key to a keyserver
+   at one time. Using this flag requires that the keydata argument of
+   the export function is set to NULL.
+
+.. py:data:: EXPORT_MODE_MINIMAL
+
+   If this bit is set, the smallest possible key is exported. For
+   OpenPGP keys it removes all signatures except for the latest
+   self-signatures. For X.509 keys it has no effect.
+
+.. py:data:: EXPORT_MODE_SECRET
+
+   Instead of exporting the public key, the secret key is
+   exported. This may not be combined with
+   EXPORT_MODE_EXTERN. For X.509 the export format is PKCS#8.
+
+.. py:data:: EXPORT_MODE_RAW
+
+   If this flag is used with EXPORT_MODE_SECRET for an X.509 key
+   the export format will be changed to PKCS#1. This flag may not be
+   used with OpenPGP.
+
+.. py:data:: EXPORT_MODE_PKCS12
+
+   If this flag is used with EXPORT_MODE_SECRET for an X.509 key
+   the export format will be changed to PKCS#12 which also includes
+   the certificate. This flag may not be used with OpenPGP.
 
 
 .. [#missing-const] This constant is defined by the gpgme library, but
