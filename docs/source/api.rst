@@ -64,6 +64,8 @@ Context
     .. py:method:: encrypt(recipients, flags, plaintext, ciphertext)
 
         Encrypts plaintext so it can only be read by the given recipients.
+        
+        :return: TODO  FIXME what does it return, if anything ?
 
         :param recipients: A list of Key objects. Only people in possession of
             the corresponding private key (for public key encryption) or
