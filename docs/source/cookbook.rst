@@ -187,7 +187,60 @@ FIXME
 Generating Keys
 ===============
 
-FIXME
+.. code:: python
+
+    import io
+    import os
+    import gpgme
+
+    keyring_path = os.path.expanduser('~/gpg-keyring')
+
+    if not os.path.exists(keyring_path):
+        os.makedirs(keyring_path)
+
+    c = gpgme.Context()
+    c.armor = True
+    c.textmode = True
+    c.set_engine_info(
+        gpgme.PROTOCOL_OpenPGP,
+        None,
+        keyring_path
+    )
+
+    key_type = 'RSA'
+    comment = ''
+    length = 4096
+    name = 'Destiny Cyfer'
+    email = 'destiny@gpgme.mail'
+    passphrase = None
+
+    # craft the "parms" string
+    parameters = '\n'.join(filter(bool, [
+        '<GnupgKeyParms format="internal">',
+        'Key-Type: RSA',
+        'Key-Length: {length}',
+        'Subkey-Type: RSA',
+        'Subkey-Length: {length}',
+        'Name-Real: {name}',
+        comment and 'Name-Comment: {comment}',
+        'Name-Email: {email}',
+        'Expire-Date: {expire_date}',
+        passphrase is not None and 'Passphrase: {passphrase}',
+        '</GnupgKeyParms>',
+    ])).format(**locals())
+
+    # generate a key pair
+    result = c.genkey(parameters, None, None)
+    private, public = result.subkeys
+
+    # exporting to string
+    buf = BytesIO()
+
+    c.export(private.fpr, gpgme.EXPORT_MODE_SECRET, buf)
+    private_armored = buf.getvalue()
+
+    c.export(public.fpr, gpgme.EXPORT_MODE_EXTERN, buf)
+    public_armored = buf.getvalue()
 
 
 Using a Passphrase Callback
@@ -199,5 +252,27 @@ FIXME
 Using a Different GPG Base Directory
 ====================================
 
-FIXME
+.. code:: python
 
+    import io
+    import os
+    import shutil
+
+    import gpgme
+
+    keyring_path = os.path.expanduser('~/gpg-keyring')
+
+    if os.path.isdir(keyring_path):
+        shutil.rmtree(keyring_path)
+
+    os.makedirs(keyring_path)
+
+    c = gpgme.Context()
+    c.armor = True
+    c.textmode = True
+
+    c.set_engine_info(
+        gpgme.PROTOCOL_OpenPGP,  # PGP
+        None,                    # use the default executable
+        keyring_path             # path to the keyring
+    )

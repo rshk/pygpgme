@@ -185,6 +185,13 @@ static const struct pygpgme_constant constants[] = {
   CONST(IMPORT_SUBKEY),
   CONST(IMPORT_SECRET),
 
+  /* export */
+  CONST(EXPORT_MODE_EXTERN),
+  CONST(EXPORT_MODE_MINIMAL),
+  CONST(EXPORT_MODE_SECRET),
+  CONST(EXPORT_MODE_RAW),
+  CONST(EXPORT_MODE_PKCS12),
+
   /* gpg-error.h constants */
 #undef CONST
 #define CONST(name) { #name, GPG_##name }
