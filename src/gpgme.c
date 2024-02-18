@@ -46,7 +46,7 @@ create_module(void)
 
 #define INIT_TYPE(type)                      \
     if (!Py_TYPE(&type))                      \
-        Py_TYPE(&type) = &PyType_Type;        \
+        Py_TYPE(&type) == &PyType_Type;        \
     if (!type.tp_alloc)                      \
         type.tp_alloc = PyType_GenericAlloc; \
     if (!type.tp_new)                        \
